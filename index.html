@@ -50,7 +50,7 @@ svg { vertical-align: middle; }
 .main { flex:1; display:flex; gap:5px; padding:5px; overflow:hidden; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.03); position: relative; border: 1px solid #f1f5f9; border-bottom: none; }
 .sort-indicator { position: absolute; inset:0; border: 3px dashed #3b82f6; border-radius: 12px; pointer-events: none; z-index: 50; display: none; background: rgba(59,130,246,0.05); justify-content: center; align-items: center; margin: 4px; }
 .col { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; scrollbar-width: none; padding: 2px; }
-.btn { padding: 4px; background: #ffffff; color: #334155; border: 1px solid #e2e8f0; border-right: 4px solid #0d47a1; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; min-height: 42px; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none; transition: 0.15s; }
+.btn { padding: 4px; background: #ffffff; color: #334155; border: 1px solid #e2e8f0; border-right: 4px solid #0d47a1; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; min-height: 42px; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: 0.15s; }
 .btn:active { transform: scale(0.95); background: #f8fafc; }
 .btn.sorting-selected { background: #eff6ff !important; border-color: #3b82f6 !important; transform: scale(0.95); box-shadow: 0 0 0 2px rgba(59,130,246,0.2) !important; }
 .btn.empty-slot { background: rgba(248,250,252,0.6); border: 2px dashed #cbd5e1; border-right: 2px dashed #cbd5e1 !important; color: #94a3b8; box-shadow: none; opacity: 0.8; }
@@ -1321,34 +1321,74 @@ function renderItems() {
 
 function setupSmartButton(btn, colKey, index, item) {
   let timer; let startX, startY; let isScrolling = false; let isLongPress = false;
-  const actionEdit = async () => await checkSettingsPassword(() => openEditModal(colKey, index));
+  const actionEdit = () => checkSettingsPassword(() => openEditModal(colKey, index));
   
+  // منع القوائم الافتراضية 
+  btn.oncontextmenu = function(e) { e.preventDefault(); return false; };
+
   btn.addEventListener('mousedown', (e) => { 
+      if(e.button === 2) return; 
       vibrate(btn);
+      isLongPress = false;
+      isScrolling = false;
       timer = setTimeout(() => { isLongPress = true; if(!sortMode) actionEdit(); }, 600); 
   });
+
   btn.addEventListener('mouseup', (e) => { 
       clearTimeout(timer); 
+      if(e.button === 2) return;
       if (!isLongPress && !isScrolling) { 
-          if (sortMode) handleSortSelection(colKey, index, btn); 
-          else if (item && item.name) add(item.name, item.price); 
-          else actionEdit(); // ضغطة سريعة عالمربع الفاضي بتفتح الإضافة
+          if (sortMode) {
+              handleSortSelection(colKey, index, btn); 
+          } else {
+              // ضغطة سريعة بتضيف الصنف، وإذا فاضي بينزل باسم (صنف إضافي) وسعر صفر
+              let itemName = (item && item.name) ? item.name : "صنف إضافي";
+              let itemPrice = (item && item.price) ? item.price : 0;
+              add(itemName, itemPrice);
+          }
       } 
       isLongPress = false; 
   });
+
   btn.addEventListener('touchstart', (e) => {
       vibrate(btn);
-      startX = e.touches[0].clientX; startY = e.touches[0].clientY; isScrolling = false; isLongPress = false;
-      timer = setTimeout(() => { if (!isScrolling) { isLongPress = true; if(!sortMode) actionEdit(); } }, 600);
+      startX = e.touches[0].clientX; 
+      startY = e.touches[0].clientY; 
+      isScrolling = false; 
+      isLongPress = false;
+      timer = setTimeout(() => { 
+          if (!isScrolling) { 
+              isLongPress = true; 
+              if(!sortMode) actionEdit(); 
+          } 
+      }, 600); 
   }, {passive: true});
-  btn.addEventListener('touchmove', (e) => { const moveX = Math.abs(e.touches[0].clientX - startX); const moveY = Math.abs(e.touches[0].clientY - startY); if (moveX > 10 || moveY > 10) { isScrolling = true; clearTimeout(timer); } }, {passive: true});
+
+  btn.addEventListener('touchmove', (e) => { 
+      const moveX = Math.abs(e.touches[0].clientX - startX); 
+      const moveY = Math.abs(e.touches[0].clientY - startY); 
+      if (moveX > 30 || moveY > 30) { 
+          isScrolling = true; 
+          clearTimeout(timer); 
+      } 
+  }, {passive: true});
+
   btn.addEventListener('touchend', (e) => { 
       clearTimeout(timer); 
-      if (isScrolling || isLongPress) return; 
-      e.preventDefault(); 
-      if (sortMode) handleSortSelection(colKey, index, btn); 
-      else if (item && item.name) add(item.name, item.price); 
-      else actionEdit();
+      if (isScrolling || isLongPress) {
+          if(e.cancelable) e.preventDefault();
+          return; 
+      }
+      if(e.cancelable) e.preventDefault(); 
+      
+      if (sortMode) {
+          handleSortSelection(colKey, index, btn); 
+      } else {
+          // ضغطة سريعة للّمس بتضيف الصنف، وإذا فاضي بينزل باسم (صنف إضافي) وسعر صفر
+          let itemName = (item && item.name) ? item.name : "صنف إضافي";
+          let itemPrice = (item && item.price) ? item.price : 0;
+          add(itemName, itemPrice);
+      }
   });
 }
 
