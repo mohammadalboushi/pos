@@ -20,13 +20,15 @@ const provider = new firebase.auth.GoogleAuthProvider();
 let currentUid = null;
 let unsubscribeData = null;
 
-// نظام الأقسام والـ 32 زر
+// نظام الأقسام والـ 42 زر
 function createEmptySection() {
     return { 
-        col1: Array(8).fill(null), 
-        col2: Array(8).fill(null), 
-        col3: Array(8).fill(null), 
-        col4: Array(8).fill(null) 
+        col1: Array(7).fill(null), 
+        col2: Array(7).fill(null), 
+        col3: Array(7).fill(null), 
+        col4: Array(7).fill(null),
+        col5: Array(7).fill(null),
+        col6: Array(7).fill(null)
     };
 }
 
@@ -39,9 +41,9 @@ if (!itemData || !itemData[sections[0]]) {
     let newData = {};
     sections.forEach(s => newData[s] = createEmptySection());
     if (itemData && itemData.col1) { // داتا قديمة عمودية فقط
-        ['col1','col2','col3','col4'].forEach(col => {
+        ['col1','col2','col3','col4','col5','col6'].forEach(col => {
             if(itemData[col]) {
-                itemData[col].forEach((it, idx) => { if(idx < 8 && it && it.name) newData[sections[0]][col][idx] = it; });
+                itemData[col].forEach((it, idx) => { if(idx < 7 && it && it.name) newData[sections[0]][col][idx] = it; });
             }
         });
     }
@@ -225,9 +227,9 @@ function mergeLocalAndCloud(cloudData) {
        let migrated = {};
        mergedSections.forEach(s => migrated[s] = createEmptySection());
        if (mergedItems.col1) {
-           ['col1','col2','col3','col4'].forEach(col => {
+           ['col1','col2','col3','col4','col5','col6'].forEach(col => {
                if(mergedItems[col]) {
-                   mergedItems[col].forEach((it, idx) => { if(idx<8 && it && it.name) migrated[mergedSections[0]][col][idx] = it; });
+                   mergedItems[col].forEach((it, idx) => { if(idx<7 && it && it.name) migrated[mergedSections[0]][col][idx] = it; });
                }
            });
        }
@@ -389,7 +391,8 @@ function searchMainItems(term) {
   if (!term) { resDiv.style.display = 'none'; return; }
   let matches = [];
   sections.forEach(sec => {
-      ['col1','col2','col3','col4'].forEach(col => {
+      ['col1','col2','col3','col4','col5','col6'].forEach(col => {
+          if(!itemData[sec][col]) itemData[sec][col] = Array(7).fill(null);
           itemData[sec][col].forEach(item => {
               if(item && item.name && item.name.includes(term)) matches.push(item);
           });
@@ -869,10 +872,11 @@ function renderSectionsBar() {
 
 function renderItems() { 
   renderSectionsBar();
-  ['col1','col2','col3','col4'].forEach(colKey => { 
+  ['col1','col2','col3','col4','col5','col6'].forEach(colKey => { 
       const colEl = getEl(colKey); colEl.innerHTML = ''; 
+      if (!itemData[currentSection][colKey]) itemData[currentSection][colKey] = Array(7).fill(null);
       const colData = itemData[currentSection][colKey];
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 7; i++) {
           const item = colData[i];
           const btn = document.createElement('button'); 
           
