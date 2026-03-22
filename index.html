@@ -39,12 +39,23 @@ svg { vertical-align: middle; }
 .key.back { background: #fff0f0; color: #ef4444; border-color: #ffcdd2; }
 .key.back:active { background: #ffebee; }
 
+/* شريط الأقسام الجديد */
+.sections-bar { display: flex; gap: 6px; overflow-x: auto; padding: 4px; scrollbar-width: none; background: #fff; border-radius: 12px; margin-bottom: 6px; flex-shrink: 0; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.sec-tab { padding: 8px 18px; font-weight: 800; font-size: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; color: #64748b; white-space: nowrap; flex-shrink: 0; user-select: none; transition: 0.2s; }
+.sec-tab.active { background: #0d47a1; color: #fff; border-color: #0d47a1; box-shadow: 0 2px 8px rgba(13,71,161,0.2); }
+.sec-tab:active { transform: scale(0.95); }
+.sec-add { background: #eff6ff; color: #1d4ed8; font-size: 16px; padding: 6px 16px; border-color: #bfdbfe; }
+
+.main-wrapper { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .main { flex:1; display:flex; gap:5px; padding:5px; overflow:hidden; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.03); position: relative; border: 1px solid #f1f5f9; border-bottom: none; }
 .sort-indicator { position: absolute; inset:0; border: 3px dashed #3b82f6; border-radius: 12px; pointer-events: none; z-index: 50; display: none; background: rgba(59,130,246,0.05); justify-content: center; align-items: center; margin: 4px; }
 .col { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; scrollbar-width: none; padding: 2px; }
-.btn { padding: 4px; background: #ffffff; color: #334155; border: 1px solid #e2e8f0; border-right: 4px solid #0d47a1; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; min-height: 38px; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none; transition: 0.15s; }
-.btn:active { transform: scale(0.9); background: #f8fafc; }
+.btn { padding: 4px; background: #ffffff; color: #334155; border: 1px solid #e2e8f0; border-right: 4px solid #0d47a1; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; min-height: 42px; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none; transition: 0.15s; }
+.btn:active { transform: scale(0.95); background: #f8fafc; }
 .btn.sorting-selected { background: #eff6ff !important; border-color: #3b82f6 !important; transform: scale(0.95); box-shadow: 0 0 0 2px rgba(59,130,246,0.2) !important; }
+.btn.empty-slot { background: rgba(248,250,252,0.6); border: 2px dashed #cbd5e1; border-right: 2px dashed #cbd5e1 !important; color: #94a3b8; box-shadow: none; opacity: 0.8; }
+.btn.empty-slot svg { stroke: #cbd5e1; transition: 0.2s; }
+.btn.empty-slot:hover svg { stroke: #94a3b8; }
 
 /* Drawer */
 .menu-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s ease; }
@@ -104,13 +115,13 @@ svg { vertical-align: middle; }
 @media (min-width: 768px) {
     body {
         display: grid;
-        grid-template-columns: 350px 1fr;
+        grid-template-columns: 1fr 350px; /* القسم العريض يمين للأصناف والرفيع يسار للحساب */
         grid-template-rows: auto auto auto 1fr;
         grid-template-areas:
-            "total main"
-            "ctrl main"
-            "ktop main"
-            "keys main";
+            "main total"
+            "main ctrl"
+            "main ktop"
+            "main keys";
         gap: 15px;
         padding: 15px;
     }
@@ -119,9 +130,11 @@ svg { vertical-align: middle; }
     .keypad-top { grid-area: ktop; margin: 0; }
     .keypad { grid-area: keys; margin: 0; gap: 8px; }
     
-    .main { 
+    .main-wrapper { 
         grid-area: main; 
         margin: 0; 
+    }
+    .main {
         border: 1px solid #e2e8f0; 
         border-radius: 16px; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
@@ -200,12 +213,15 @@ svg { vertical-align: middle; }
   <div class="key zero" onclick="press('0')">0</div>
 </div>
 
-<div class="main">
-  <div class="sort-indicator" id="sort-indicator"></div>
-  <div class="col" id="col1"></div>
-  <div class="col" id="col2"></div>
-  <div class="col" id="col3"></div>
-  <div class="col" id="col4"></div>
+<div class="main-wrapper">
+  <div id="sections-bar" class="sections-bar"></div>
+  <div class="main">
+    <div class="sort-indicator" id="sort-indicator"></div>
+    <div class="col" id="col1"></div>
+    <div class="col" id="col2"></div>
+    <div class="col" id="col3"></div>
+    <div class="col" id="col4"></div>
+  </div>
 </div>
 
 <div id="receipt"></div>
@@ -225,10 +241,6 @@ svg { vertical-align: middle; }
 
     <div class="menu-divider"></div>
     
-    <div class="menu-action" onclick="closeSettingsMenuBtn(); openAddItemModal()">
-        <span>إضافة صنف</span>
-        <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
-    </div>
     <div class="menu-action" onclick="closeSettingsMenuBtn(); toggleSortMode()">
         <span>ترتيب الأصناف</span>
         <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="14" y2="6"></line><line x1="4" y1="12" x2="14" y2="12"></line><line x1="4" y1="18" x2="14" y2="18"></line><polyline points="17 8 20 5 23 8"></polyline><line x1="20" y1="5" x2="20" y2="19"></line></svg></span>
@@ -349,32 +361,13 @@ svg { vertical-align: middle; }
     </div>
 </div>
 
-<div id="add-item-modal" class="custom-modal hidden" onclick="goBackModalBtn()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-title">إضافة صنف جديد</div>
-        <input id="new-item-name" class="pay-input" type="text" placeholder="اسم الصنف">
-        <input id="new-item-price" class="pay-input" type="number" placeholder="السعر (L.L.)">
-        <div style="text-align:right; font-size:12px; margin-bottom:8px; color:#64748b; font-weight:bold;">اختر العمود:</div>
-        <div style="display:flex; gap:5px; margin-bottom:15px;">
-            <button class="key" onclick="selectCol('col1')" id="btn-col1" style="flex:1;">1</button>
-            <button class="key" onclick="selectCol('col2')" id="btn-col2" style="flex:1;">2</button>
-            <button class="key" onclick="selectCol('col3')" id="btn-col3" style="flex:1;">3</button>
-            <button class="key" onclick="selectCol('col4')" id="btn-col4" style="flex:1;">4</button>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <button class="menu-btn" style="background:#f1f5f9; justify-content:center; margin:0;" onclick="goBackModalBtn()">إلغاء</button>
-            <button class="menu-btn btn-add" style="margin:0;" onclick="confirmAddItem()">حفظ</button>
-        </div>
-    </div>
-</div>
-
 <div id="edit-modal" class="custom-modal hidden" onclick="goBackModalBtn()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-title" id="edit-modal-title">تعديل صنف</div>
         <input id="edit-name" class="pay-input" type="text" placeholder="الاسم">
         <input id="edit-price" class="pay-input" type="number" placeholder="السعر">
-        <button class="menu-btn btn-add" onclick="saveItemEdit()">حفظ التعديلات</button>
-        <button class="menu-btn" style="color:#ef4444; justify-content:center; background:#fff0f0;" onclick="deleteItem()">حذف الصنف</button>
+        <button class="menu-btn btn-add" onclick="saveItemEdit()" style="justify-content:center;">حفظ</button>
+        <button class="menu-btn" style="color:#ef4444; justify-content:center; background:#fff0f0;" onclick="deleteItem()">تفريغ المربع (حذف)</button>
     </div>
 </div>
 
@@ -454,8 +447,34 @@ const provider = new firebase.auth.GoogleAuthProvider();
 let currentUid = null;
 let unsubscribeData = null;
 
-const defaultData = { col1: [], col2: [], col3: [], col4: [] };
-let itemData = defaultData;
+// نظام الأقسام والـ 32 زر
+function createEmptySection() {
+    return { 
+        col1: Array(8).fill(null), 
+        col2: Array(8).fill(null), 
+        col3: Array(8).fill(null), 
+        col4: Array(8).fill(null) 
+    };
+}
+
+let sections = JSON.parse(localStorage.getItem('sections')) || ["1", "2", "3", "4", "5", "6", "7", "8"];
+let itemData = JSON.parse(localStorage.getItem('itemData')) || null;
+let currentSection = sections[0];
+
+// تهيئة الداتا الجديدة وتأمين الهجرة من النسخة القديمة إذا لزم الأمر
+if (!itemData || !itemData[sections[0]]) {
+    let newData = {};
+    sections.forEach(s => newData[s] = createEmptySection());
+    if (itemData && itemData.col1) { // داتا قديمة عمودية فقط
+        ['col1','col2','col3','col4'].forEach(col => {
+            if(itemData[col]) {
+                itemData[col].forEach((it, idx) => { if(idx < 8 && it && it.name) newData[sections[0]][col][idx] = it; });
+            }
+        });
+    }
+    itemData = newData;
+}
+
 let savedBills = [];
 let customers = [];
 let rate = 89000;
@@ -469,7 +488,6 @@ let sortMode = false;
 let sortFirstSelection = null;
 let currentEditCol = null;
 let currentEditIndex = null;
-let selectedColForAdd = 'col1';
 
 let custNameInput = "";
 let custAddressInput = "";
@@ -573,12 +591,14 @@ auth.onAuthStateChanged(user => {
       
       if(unsubscribeData) { unsubscribeData(); unsubscribeData = null; }
       
-      itemData = JSON.parse(localStorage.getItem('itemData')) || defaultData;
+      itemData = JSON.parse(localStorage.getItem('itemData')) || itemData;
+      sections = JSON.parse(localStorage.getItem('sections')) || sections;
       savedBills = JSON.parse(localStorage.getItem('savedBills')) || [];
       customers = JSON.parse(localStorage.getItem('customers')) || [];
       rate = parseFloat(localStorage.getItem('exchangeRate')) || 89000;
       settingsPassword = localStorage.getItem('settingsPassword') || null;
       
+      if (!sections.includes(currentSection)) currentSection = sections[0];
       renderItems();
       renderCustomerList('manage');
       renderBillsList();
@@ -594,9 +614,13 @@ function toggleGoogleAuth() {
           if (res) {
               auth.signOut().then(() => {
                   localStorage.removeItem('itemData');
+                  localStorage.removeItem('sections');
                   localStorage.removeItem('savedBills');
                   localStorage.removeItem('customers');
-                  itemData = defaultData;
+                  sections = ["1", "2", "3", "4", "5", "6", "7", "8"];
+                  itemData = {};
+                  sections.forEach(s => itemData[s] = createEmptySection());
+                  currentSection = "1";
                   savedBills = [];
                   customers = [];
                   renderItems();
@@ -613,26 +637,28 @@ function toggleGoogleAuth() {
 }
 
 function mergeLocalAndCloud(cloudData) {
-  let localItems = JSON.parse(localStorage.getItem('itemData')) || defaultData;
+  let localSections = JSON.parse(localStorage.getItem('sections')) || ["1", "2", "3", "4", "5", "6", "7", "8"];
+  let localItems = JSON.parse(localStorage.getItem('itemData')) || {};
   let localBills = JSON.parse(localStorage.getItem('savedBills')) || [];
   let localCusts = JSON.parse(localStorage.getItem('customers')) || [];
   
+  let mergedSections = cloudData && cloudData.sections ? [...cloudData.sections] : localSections;
   let mergedItems = cloudData && cloudData.itemData ? JSON.parse(JSON.stringify(cloudData.itemData)) : localItems;
   let mergedBills = cloudData && cloudData.savedBills ? [...cloudData.savedBills] : [];
   let mergedCusts = cloudData && cloudData.customers ? [...cloudData.customers] : [];
   let mergedRate = cloudData && cloudData.rate ? cloudData.rate : (parseFloat(localStorage.getItem('exchangeRate')) || 89000);
 
-  if (cloudData && cloudData.itemData) {
-      ['col1', 'col2', 'col3', 'col4'].forEach(col => {
-          if (localItems[col]) {
-              localItems[col].forEach(localItem => {
-                  const exists = mergedItems[col].find(cloudItem => cloudItem.name === localItem.name);
-                  if (!exists && localItem.name.trim() !== "") {
-                      mergedItems[col].push(localItem);
-                  }
-              });
-          }
-      });
+  if (Object.keys(mergedItems).length === 0 || (!mergedItems[mergedSections[0]] && mergedItems.col1)) {
+       let migrated = {};
+       mergedSections.forEach(s => migrated[s] = createEmptySection());
+       if (mergedItems.col1) {
+           ['col1','col2','col3','col4'].forEach(col => {
+               if(mergedItems[col]) {
+                   mergedItems[col].forEach((it, idx) => { if(idx<8 && it && it.name) migrated[mergedSections[0]][col][idx] = it; });
+               }
+           });
+       }
+       mergedItems = migrated;
   }
 
   localBills.forEach(lb => {
@@ -646,10 +672,11 @@ function mergeLocalAndCloud(cloudData) {
   });
 
   localStorage.removeItem('itemData');
+  localStorage.removeItem('sections');
   localStorage.removeItem('savedBills');
   localStorage.removeItem('customers');
 
-  return { itemData: mergedItems, savedBills: mergedBills, customers: mergedCusts, rate: mergedRate };
+  return { itemData: mergedItems, sections: mergedSections, savedBills: mergedBills, customers: mergedCusts, rate: mergedRate };
 }
 
 function syncOnceThenListen(uid) {
@@ -660,9 +687,11 @@ function syncOnceThenListen(uid) {
           let cloudData = doc.exists ? doc.data() : null;
           const merged = mergeLocalAndCloud(cloudData);
           itemData = merged.itemData;
+          sections = merged.sections;
           savedBills = merged.savedBills;
           customers = merged.customers;
           rate = merged.rate;
+          if (!sections.includes(currentSection)) currentSection = sections[0];
           saveDataToCloud();
           setupRealtimeListener(uid);
       }).catch(err => {
@@ -670,9 +699,11 @@ function syncOnceThenListen(uid) {
               let cloudData = doc.exists ? doc.data() : null;
               const merged = mergeLocalAndCloud(cloudData);
               itemData = merged.itemData;
+              sections = merged.sections;
               savedBills = merged.savedBills;
               customers = merged.customers;
               rate = merged.rate;
+              if (!sections.includes(currentSection)) currentSection = sections[0];
               saveDataToCloud();
               setupRealtimeListener(uid);
           }).catch(e => setupRealtimeListener(uid));
@@ -686,7 +717,10 @@ function setupRealtimeListener(uid) {
   unsubscribeData = db.collection('midoCashier').doc(uid).onSnapshot(docSnap => {
       if(docSnap.exists) {
           const data = docSnap.data();
-          itemData = data.itemData || defaultData;
+          sections = data.sections || ["1", "2", "3", "4", "5", "6", "7", "8"];
+          itemData = data.itemData || {};
+          if (Object.keys(itemData).length === 0) sections.forEach(s => itemData[s] = createEmptySection());
+          if (!sections.includes(currentSection)) currentSection = sections[0];
           savedBills = data.savedBills || [];
           customers = data.customers || [];
           rate = data.rate || 89000;
@@ -702,6 +736,7 @@ function saveData() {
       saveDataToCloud();
   } else {
       localStorage.setItem('itemData', JSON.stringify(itemData));
+      localStorage.setItem('sections', JSON.stringify(sections));
       localStorage.setItem('savedBills', JSON.stringify(savedBills));
       localStorage.setItem('customers', JSON.stringify(customers));
       localStorage.setItem('exchangeRate', rate);
@@ -716,6 +751,7 @@ function saveDataToCloud() {
   if (!currentUid) return;
   db.collection('midoCashier').doc(currentUid).set({
       itemData: itemData,
+      sections: sections,
       savedBills: savedBills,
       customers: customers,
       rate: rate
@@ -737,7 +773,26 @@ function showToast(msg) {
   setTimeout(() => { t.classList.remove('show'); }, 2000);
 }
 
+// زر Esc كزر رجوع عالمي 
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+      const receiptBox = getEl('receipt');
+      if (receiptBox && receiptBox.classList.contains('show')) {
+          toggleReceipt();
+          return;
+      }
+      const activeModal = document.querySelector('.custom-modal:not(.hidden)');
+      if (activeModal) {
+          goBackModalBtn();
+          return;
+      }
+      if (getEl('settings-menu').classList.contains('open')) {
+          closeSettingsMenuBtn();
+          return;
+      }
+      return;
+  }
+  
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
       if (e.key === 'Enter') {
           e.preventDefault();
@@ -760,9 +815,11 @@ function searchMainItems(term) {
   const resDiv = getEl('main-search-results');
   if (!term) { resDiv.style.display = 'none'; return; }
   let matches = [];
-  ['col1','col2','col3','col4'].forEach(col => {
-      itemData[col].forEach(item => {
-          if(item.name && item.name.includes(term)) matches.push(item);
+  sections.forEach(sec => {
+      ['col1','col2','col3','col4'].forEach(col => {
+          itemData[sec][col].forEach(item => {
+              if(item && item.name && item.name.includes(term)) matches.push(item);
+          });
       });
   });
   if(matches.length === 0) { resDiv.style.display = 'none'; return; }
@@ -1209,33 +1266,90 @@ async function clearDailyReport() {
   }
 }
 
+function renderSectionsBar() {
+    const bar = getEl('sections-bar');
+    bar.innerHTML = '';
+    sections.forEach(sec => {
+        const div = document.createElement('div');
+        div.className = `sec-tab ${sec === currentSection ? 'active' : ''}`;
+        div.textContent = `قسم ${sec}`;
+        div.onclick = () => { currentSection = sec; renderItems(); };
+        bar.appendChild(div);
+    });
+    
+    const addBtn = document.createElement('div');
+    addBtn.className = 'sec-tab sec-add';
+    addBtn.innerHTML = '+';
+    addBtn.onclick = () => {
+        promptModal("أدخل رقم أو اسم القسم الجديد:").then(name => {
+            if(name && !sections.includes(name)) {
+                sections.push(name);
+                itemData[name] = createEmptySection();
+                currentSection = name;
+                saveData();
+                renderItems();
+            }
+        });
+    };
+    bar.appendChild(addBtn);
+}
+
 function renderItems() { 
+  renderSectionsBar();
   ['col1','col2','col3','col4'].forEach(colKey => { 
       const colEl = getEl(colKey); colEl.innerHTML = ''; 
-      itemData[colKey].forEach((item, index) => { 
-          const btn = document.createElement('button'); btn.className = 'btn'; btn.textContent = item.name; 
-          if(item.price === 0 && item.name === "") { btn.style.opacity = "0.5"; btn.style.borderStyle = "dashed"; btn.textContent = ""; } 
-          if (item.color) btn.style.borderLeftColor = item.color; 
-          setupSmartButton(btn, colKey, index, item); colEl.appendChild(btn); 
-      }); 
+      const colData = itemData[currentSection][colKey];
+      for (let i = 0; i < 8; i++) {
+          const item = colData[i];
+          const btn = document.createElement('button'); 
+          
+          if(item && item.name) { 
+              btn.className = 'btn'; 
+              btn.textContent = item.name; 
+              if (item.color) btn.style.borderLeftColor = item.color; 
+          } else {
+              btn.className = 'btn empty-slot';
+              btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+          }
+          
+          setupSmartButton(btn, colKey, i, item); 
+          colEl.appendChild(btn); 
+      }
   }); 
   getEl('rate-display').textContent = `سعر الصرف: ${fmt(rate)}`; 
 }
 
 function setupSmartButton(btn, colKey, index, item) {
   let timer; let startX, startY; let isScrolling = false; let isLongPress = false;
-  btn.addEventListener('mousedown', () => { 
+  const actionEdit = async () => await checkSettingsPassword(() => openEditModal(colKey, index));
+  
+  btn.addEventListener('mousedown', (e) => { 
       vibrate(btn);
-      timer = setTimeout(async () => { isLongPress = true; if(!sortMode) await checkSettingsPassword(() => openEditModal(colKey, index)); }, 600); 
+      timer = setTimeout(() => { isLongPress = true; if(!sortMode) actionEdit(); }, 600); 
   });
-  btn.addEventListener('mouseup', () => { clearTimeout(timer); if (!isLongPress) { if (sortMode) handleSortSelection(colKey, index, btn); else add(item.name, item.price); } isLongPress = false; });
+  btn.addEventListener('mouseup', (e) => { 
+      clearTimeout(timer); 
+      if (!isLongPress && !isScrolling) { 
+          if (sortMode) handleSortSelection(colKey, index, btn); 
+          else if (item && item.name) add(item.name, item.price); 
+          else actionEdit(); // ضغطة سريعة عالمربع الفاضي بتفتح الإضافة
+      } 
+      isLongPress = false; 
+  });
   btn.addEventListener('touchstart', (e) => {
       vibrate(btn);
       startX = e.touches[0].clientX; startY = e.touches[0].clientY; isScrolling = false; isLongPress = false;
-      timer = setTimeout(async () => { if (!isScrolling) { isLongPress = true; if(!sortMode) await checkSettingsPassword(() => openEditModal(colKey, index)); } }, 600);
+      timer = setTimeout(() => { if (!isScrolling) { isLongPress = true; if(!sortMode) actionEdit(); } }, 600);
   }, {passive: true});
   btn.addEventListener('touchmove', (e) => { const moveX = Math.abs(e.touches[0].clientX - startX); const moveY = Math.abs(e.touches[0].clientY - startY); if (moveX > 10 || moveY > 10) { isScrolling = true; clearTimeout(timer); } }, {passive: true});
-  btn.addEventListener('touchend', (e) => { clearTimeout(timer); if (isScrolling) return; if (isLongPress) return; e.preventDefault(); if (sortMode) handleSortSelection(colKey, index, btn); else add(item.name, item.price); });
+  btn.addEventListener('touchend', (e) => { 
+      clearTimeout(timer); 
+      if (isScrolling || isLongPress) return; 
+      e.preventDefault(); 
+      if (sortMode) handleSortSelection(colKey, index, btn); 
+      else if (item && item.name) add(item.name, item.price); 
+      else actionEdit();
+  });
 }
 
 function press(num) { vibrate(event.target); if(enteredNum === '0') enteredNum = ''; enteredNum += num; updateInputDisplay(); }
@@ -1446,16 +1560,46 @@ function updatePassBtn() {
   }
 }
 
-function openAddItemModal() { getEl('new-item-name').value = ''; getEl('new-item-price').value = ''; selectCol('col1'); showModal('add-item-modal'); }
-function selectCol(col) { selectedColForAdd = col; ['col1','col2','col3','col4'].forEach(c => { getEl('btn-'+c).style.background = (c===col) ? '#eff6ff' : '#f8fafc'; getEl('btn-'+c).style.borderColor = (c===col) ? '#3b82f6' : '#e2e8f0'; }); }
-function confirmAddItem() { const name = getEl('new-item-name').value.trim(); const price = Number(getEl('new-item-price').value); if(!name) return alertModal("الاسم مطلوب!"); itemData[selectedColForAdd].push({name, price}); saveData(); goBackModalBtn(); showToast("تم إضافة الصنف"); }
-
 function toggleSortMode() { sortMode = !sortMode; sortFirstSelection = null; getEl('sort-indicator').style.display = sortMode ? 'flex' : 'none'; if(sortMode) renderItems(); }
-function handleSortSelection(col, index, btn) { vibrate(btn); if (!sortFirstSelection) { sortFirstSelection = {col, index}; btn.classList.add('sorting-selected'); } else { const s1 = sortFirstSelection; const temp = itemData[s1.col][s1.index]; itemData[s1.col][s1.index] = itemData[col][index]; itemData[col][index] = temp; sortFirstSelection = null; saveData(); } }
+function handleSortSelection(col, index, btn) { 
+    vibrate(btn); 
+    if (!sortFirstSelection) { 
+        sortFirstSelection = {col, index}; btn.classList.add('sorting-selected'); 
+    } else { 
+        const s1 = sortFirstSelection; 
+        const temp = itemData[currentSection][s1.col][s1.index]; 
+        itemData[currentSection][s1.col][s1.index] = itemData[currentSection][col][index]; 
+        itemData[currentSection][col][index] = temp; 
+        sortFirstSelection = null; 
+        saveData(); 
+    } 
+}
 
-function openEditModal(col, idx) { currentEditCol = col; currentEditIndex = idx; const item = itemData[col][idx]; getEl('edit-name').value = item.name; getEl('edit-price').value = item.price; showModal('edit-modal'); }
-function saveItemEdit() { const name = getEl('edit-name').value; const price = Number(getEl('edit-price').value); if(!name) return; itemData[currentEditCol][currentEditIndex] = { ...itemData[currentEditCol][currentEditIndex], name, price }; saveData(); goBackModalBtn(); }
-async function deleteItem() { if(await confirmModal("حذف الصنف نهائياً؟")) { itemData[currentEditCol].splice(currentEditIndex, 1); saveData(); goBackModalBtn(); } }
+function openEditModal(col, idx) { 
+    currentEditCol = col; currentEditIndex = idx; 
+    const item = itemData[currentSection][col][idx]; 
+    getEl('edit-name').value = item ? item.name : ''; 
+    getEl('edit-price').value = item ? item.price : ''; 
+    getEl('edit-modal-title').textContent = (item && item.name) ? "تعديل صنف" : "إضافة صنف";
+    showModal('edit-modal'); 
+    setTimeout(() => getEl('edit-name').focus(), 100);
+}
+
+function saveItemEdit() { 
+    const name = getEl('edit-name').value.trim(); 
+    const price = Number(getEl('edit-price').value) || 0; 
+    if(!name) {
+        itemData[currentSection][currentEditCol][currentEditIndex] = null;
+    } else {
+        itemData[currentSection][currentEditCol][currentEditIndex] = { name, price }; 
+    }
+    saveData(); goBackModalBtn(); 
+}
+
+async function deleteItem() { 
+    itemData[currentSection][currentEditCol][currentEditIndex] = null; 
+    saveData(); goBackModalBtn(); 
+}
 
 async function changeExchangeRate() { const val = await promptModal(`السعر الحالي: ${fmt(rate)}`, false); if(val && !isNaN(val)) { rate = parseFloat(val); saveData(); renderItems(); updateTotal(); } }
 
@@ -1469,7 +1613,8 @@ function showDailyReport() {
 }
 
 function exportDataAndCopy() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(itemData));
+    const backupData = { itemData, sections, savedBills, customers, rate };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "mido_backup.json");
@@ -1491,7 +1636,9 @@ function openJsonImport() {
         const reader = new FileReader();
         reader.onload = async event => {
             try {
-                itemData = JSON.parse(event.target.result);
+                const imported = JSON.parse(event.target.result);
+                if (imported.itemData) itemData = imported.itemData;
+                if (imported.sections) sections = imported.sections;
                 saveData();
                 renderItems();
                 await alertModal("تم استيراد الملف بنجاح!");
