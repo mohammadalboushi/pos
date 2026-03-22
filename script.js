@@ -32,7 +32,7 @@ function createEmptySection() {
     };
 }
 
-let sections = JSON.parse(localStorage.getItem('sections')) || ["1", "2", "3", "4", "5", "6", "7", "8"];
+let sections = JSON.parse(localStorage.getItem('sections')) || ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 let itemData = JSON.parse(localStorage.getItem('itemData')) || null;
 let currentSection = sections[0];
 
@@ -192,7 +192,7 @@ function toggleGoogleAuth() {
                   localStorage.removeItem('sections');
                   localStorage.removeItem('savedBills');
                   localStorage.removeItem('customers');
-                  sections = ["1", "2", "3", "4", "5", "6", "7", "8"];
+                  sections = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
                   itemData = {};
                   sections.forEach(s => itemData[s] = createEmptySection());
                   currentSection = "1";
@@ -212,7 +212,7 @@ function toggleGoogleAuth() {
 }
 
 function mergeLocalAndCloud(cloudData) {
-  let localSections = JSON.parse(localStorage.getItem('sections')) || ["1", "2", "3", "4", "5", "6", "7", "8"];
+  let localSections = JSON.parse(localStorage.getItem('sections')) || ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
   let localItems = JSON.parse(localStorage.getItem('itemData')) || {};
   let localBills = JSON.parse(localStorage.getItem('savedBills')) || [];
   let localCusts = JSON.parse(localStorage.getItem('customers')) || [];
@@ -292,7 +292,7 @@ function setupRealtimeListener(uid) {
   unsubscribeData = db.collection('midoCashier').doc(uid).onSnapshot(docSnap => {
       if(docSnap.exists) {
           const data = docSnap.data();
-          sections = data.sections || ["1", "2", "3", "4", "5", "6", "7", "8"];
+          sections = data.sections || ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
           itemData = data.itemData || {};
           if (Object.keys(itemData).length === 0) sections.forEach(s => itemData[s] = createEmptySection());
           if (!sections.includes(currentSection)) currentSection = sections[0];
@@ -350,6 +350,16 @@ function showToast(msg) {
 
 // زر Esc كزر رجوع عالمي 
 document.addEventListener('keydown', (e) => {
+  if (e.key.match(/^F(1[0-2]|[1-9])$/)) {
+      e.preventDefault();
+      const secIndex = parseInt(e.key.substring(1)) - 1;
+      if (sections[secIndex]) {
+          currentSection = sections[secIndex];
+          renderItems();
+      }
+      return;
+  }
+
   if (e.key === 'Escape') {
       const receiptBox = getEl('receipt');
       if (receiptBox && receiptBox.classList.contains('show')) {
@@ -373,17 +383,34 @@ document.addEventListener('keydown', (e) => {
           e.preventDefault();
           const activeModal = document.querySelector('.custom-modal:not(.hidden)');
           if (activeModal) {
-              const submitBtn = activeModal.querySelector('.btn-add') || activeModal.querySelector('.btn-close');
-              if (submitBtn) submitBtn.click();
+              if (activeModal.id === 'pay-box-modal') {
+                  closeAllModals();
+                  saveBill();
+              } else {
+                  const submitBtn = activeModal.querySelector('.btn-add') || activeModal.querySelector('.btn-close');
+                  if (submitBtn) submitBtn.click();
+              }
           }
       }
       return; 
   }
+
   if (e.key >= '0' && e.key <= '9') { press(e.key); } 
-  else if (e.key === 'Backspace' || e.key === 'Delete') { clearInput(); } 
-  else if (e.key === 'Enter' || e.key === '+') { const anyModalOpen = document.querySelector('.custom-modal:not(.hidden)'); if (!anyModalOpen) openPay(); } 
-  else if (e.key.toLowerCase() === 's') { saveBill(); } 
-  else if (e.key.toLowerCase() === 'c') { openCustomerSelectModal(); }
+  else if (e.key === 'End') { e.preventDefault(); press('00'); } 
+  else if (e.key === 'PageDown') { e.preventDefault(); press('000'); } 
+  else if (e.key === 'Backspace') { clearInput(); } 
+  else if (e.key === 'Delete') { reset(); } 
+  else if (e.key === '+' || e.key === 'Add' || e.key === 'Shift') { activatePrice(); } 
+  else if (e.key === 'Enter') { 
+      const anyModalOpen = document.querySelector('.custom-modal:not(.hidden)'); 
+      if (!anyModalOpen) {
+          saveBill(); 
+      } else if (anyModalOpen.id === 'pay-box-modal') {
+          closeAllModals();
+          saveBill();
+      }
+  } 
+  else if (e.key === '-' || e.key === 'Subtract') { const anyModalOpen = document.querySelector('.custom-modal:not(.hidden)'); if (!anyModalOpen) openPay(); } 
 });
 
 function searchMainItems(term) {

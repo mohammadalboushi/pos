@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mido-pos-v3'; // 👈 هاد رقم الإصدار
+const CACHE_NAME = 'mido-pos-v4'; // 👈 هاد رقم الإصدار
 const urlsToCache = [
   './',
   './index.html',
