@@ -335,7 +335,7 @@ function saveDataToCloud() {
 
 function vibrate(el) { 
   if(navigator.vibrate) navigator.vibrate(30); 
-  if(el) { 
+  if(el && el.tagName !== 'BODY') { 
       el.style.transform='scale(0.92)'; 
       setTimeout(()=>el.style.transform='scale(1)', 100); 
   } 

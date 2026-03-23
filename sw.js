@@ -1,56 +1,1 @@
-const CACHE_NAME = 'mido-pos-v4'; // 👈 هاد رقم الإصدار
-const urlsToCache = [
-  './',
-  './index.html',
-  './style.css',
-  './script.js',
-  './manifest.json',
-  './icon.png'
-];
-
-// 1. التثبيت (Install) وتكييش الملفات الأساسية
-self.addEventListener('install', event => {
-  self.skipWaiting(); // تفعيل النسخة الجديدة فوراً بدون انتظار
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-// 2. التفعيل (Activate) وحذف الكاش القديم المضروب
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            console.log('حذف الكاش القديم:', cache);
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim(); // السيطرة على كل النوافذ المفتوحة فوراً
-});
-
-// 3. استراتيجية الجلب (Fetch): الشبكة أولاً، ثم الكاش
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // إذا إجى رد سليم من النت، بنحدث الكاش بالنسخة الجديدة
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // إذا انقطع النت، بنجيب الملف من الكاش
-        return caches.match(event.request);
-      })
-  );
-});
+const CACHE_NAME = 'mido-pos-v5'; // 👈 هاد رقم الإصدارconst urlsToCache = [  './',  './index.html',  './style.css',  './script.js',  './manifest.json',  './icon.png'];// 1. التثبيت (Install) وتكييش الملفات الأساسيةself.addEventListener('install', event => {  self.skipWaiting(); // تفعيل النسخة الجديدة فوراً بدون انتظار  event.waitUntil(    caches.open(CACHE_NAME)      .then(cache => cache.addAll(urlsToCache))  );});// 2. التفعيل (Activate) وحذف الكاش القديم المضروبself.addEventListener('activate', event => {  event.waitUntil(    caches.keys().then(cacheNames => {      return Promise.all(        cacheNames.map(cache => {          if (cache !== CACHE_NAME) {            console.log('حذف الكاش القديم:', cache);            return caches.delete(cache);          }        })      );    })  );  self.clients.claim(); // السيطرة على كل النوافذ المفتوحة فوراً});// 3. استراتيجية الجلب (Fetch): الشبكة أولاً، ثم الكاشself.addEventListener('fetch', event => {  event.respondWith(    fetch(event.request)      .then(response => {        // إذا إجى رد سليم من النت، بنحدث الكاش بالنسخة الجديدة        if (response && response.status === 200 && response.type === 'basic') {          const responseToCache = response.clone();          caches.open(CACHE_NAME).then(cache => {            cache.put(event.request, responseToCache);          });        }        return response;      })      .catch(() => {        // إذا انقطع النت، بنجيب الملف من الكاش        return caches.match(event.request);      })  );});
